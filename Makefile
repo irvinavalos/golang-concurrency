@@ -4,3 +4,7 @@ build:
 
 chat: build
 	@./bin/chat
+
+test-race:
+	@go clean -testcache
+	@go test -race -v ./...
