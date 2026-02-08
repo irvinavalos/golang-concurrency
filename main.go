@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+)
+
+var (
+	PORT = ":8000"
+)
+
+func handleWS(w http.ResponseWriter, r *http.Request) {
+}
 
 func main() {
-    fmt.Println("Hello world")
+	http.HandleFunc("/", handleWS)
+	log.Fatal(http.ListenAndServe(PORT, nil))
 }
