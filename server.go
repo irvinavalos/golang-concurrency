@@ -35,7 +35,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Errror on HTTP connection upgrade: %v\n", err)
 		return
 	}
 
@@ -46,5 +46,6 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 func startServer() {
 	server := NewServer()
 	http.HandleFunc("/", server.handleWS)
+    log.Println("Starting server")
 	log.Fatal(http.ListenAndServe(PORT, nil))
 }
