@@ -21,6 +21,20 @@ type RequestMessage struct {
 	data        string
 }
 
+type ResponseMessage struct {
+	messageType MessageType
+	data        string
+	senderID    string
+}
+
+func NewResponseMessage(msg *RequestMessage) *ResponseMessage {
+	return &ResponseMessage{
+		messageType: msg.messageType,
+		data:        msg.data,
+		senderID:    msg.client.ID,
+	}
+}
+
 type Client struct {
 	ID   string
 	mu   *sync.RWMutex

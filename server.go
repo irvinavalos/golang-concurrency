@@ -61,7 +61,28 @@ func (s *Server) leaveServer(c *Client) {
 	log.Printf("ClientID: %s left\n", c.ID)
 }
 
-func (s *Server) broadcast(rq *RequestMessage) {
+func (s *Server) broadcast(msg *RequestMessage) {
+	clients := []*Client{}
+
+	s.mu.Lock()
+	for _, c := range s.Clients {
+		if c.ID != msg.client.ID {
+			clients = append(clients, c)
+		}
+	}
+	s.mu.Unlock()
+
+	response := NewResponseMessage(msg)
+
+	for _, c := range clients {
+		err := c.conn.WriteJSON(response)
+		if err != nil {
+			log.Printf("Error sending message to ClientID: %s", c.ID)
+			continue
+		}
+	}
+
+	log.Println("Broadcast was sent...")
 }
 
 func (s *Server) AcceptLoop() {
@@ -72,7 +93,7 @@ func (s *Server) AcceptLoop() {
 		case client := <-s.leaveServerCh:
 			s.leaveServer(client)
 		case msg := <-s.broadcastCh:
-			s.broadcast(msg)
+			go s.broadcast(msg)
 		}
 	}
 }
