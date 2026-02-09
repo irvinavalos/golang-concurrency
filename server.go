@@ -17,6 +17,7 @@ type Server struct {
 	mu            *sync.RWMutex
 	joinServerCh  chan *Client
 	leaveServerCh chan *Client
+	broadcastCh   chan *RequestMessage
 }
 
 func NewServer() *Server {
@@ -25,6 +26,7 @@ func NewServer() *Server {
 		mu:            new(sync.RWMutex),
 		joinServerCh:  make(chan *Client),
 		leaveServerCh: make(chan *Client),
+		broadcastCh:   make(chan *RequestMessage),
 	}
 }
 
@@ -45,6 +47,8 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 
 	client := NewClient(conn)
 	s.joinServerCh <- client
+
+	go client.readMessageLoop(s.leaveServerCh, s.broadcastCh)
 }
 
 func (s *Server) joinServer(c *Client) {
@@ -57,13 +61,18 @@ func (s *Server) leaveServer(c *Client) {
 	log.Printf("ClientID: %s left\n", c.ID)
 }
 
+func (s *Server) broadcast(rq *RequestMessage) {
+}
+
 func (s *Server) AcceptLoop() {
 	for {
 		select {
-		case c := <-s.joinServerCh:
-			s.joinServer(c)
-		case c := <-s.leaveServerCh:
-			s.leaveServer(c)
+		case client := <-s.joinServerCh:
+			s.joinServer(client)
+		case client := <-s.leaveServerCh:
+			s.leaveServer(client)
+		case msg := <-s.broadcastCh:
+			s.broadcast(msg)
 		}
 	}
 }
